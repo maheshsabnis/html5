@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>FileReader - ReadAsURL with Local Image</title>
+    <style type="text/css">
+        .highlight, .unhighlight {
+            max-height:100px;
+            max-width:100px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            margin:10px;
+        }
+        .highlight {
+            border: 5px solid #6f0;
+        }
+        .unhighlight {
+            border: 5px solid #000;
+        }
+    </style>
+    <script type="text/javascript">
+        //load image file selected
+        function handleFiles(files) {
+            debugger;
+            //set the defaults
+            var fileLimit = 10; //max files at one time
+            var sizeLimit = 5000; //KB file size limit
+            var imageType = /image.*/; //mime type of images -  regular expression
+
+            //reference the image panel and clear
+            var imgPanel = document.getElementById('imgPanel');
+            imgPanel.innerHTML = ' ';
+
+            //Calculate the FileSize limie in bytes
+            var sizeLimitBytes = sizeLimit * 1024;
+            debugger;
+            //check if the number of files is greater than limit
+            if (files.length < fileLimit) {
+                //loop through filelist
+                for (var i = 0; i < files.length; i++) {
+                    //reference the current file
+                    var file = files[i];
+                    //veryfy the file type as image
+                    if (file.type.match(imageType)) {
+                        //varify the file is not above the max size
+                        if (file.size < sizeLimitBytes) {
+                            //create an image container for the file
+                            var img = document.createElement("img");
+                            img.file = file;
+                            img.className = 'unhighlight';
+                            img.addEventListener('mouseover',showFile,false);
+                            img.addEventListener('mouseout', cleanFile, false);
+                            imgPanel.appendChild(img);
+
+                            //create our reader to read the file
+                            var reader = new FileReader();
+                            //set the onload event for the reader
+                            reader.onload = (function (ig) { return function (e) { ig.src = e.target.result; }; })(img);
+                            //read the file as data URL for the image
+                            reader.readAsDataURL(file);
+
+
+                        } else {
+                            //file is too big
+                            alert(file.name + ' is larger than ' + sizeLimit + 'KB');
+                        }
+                    } else {
+                        //File is not the image type
+                        alert(file.name + ' is not an Image');
+                    }
+                }
+            }
+            else {
+                imgPanel.innerHTML = 'Only ' + fileLimit +'  filese can be selected at a time' ;
+            }
+
+        }
+        //Display image on the image mouse over
+        function showFile() {
+            //highlight the current image
+            this.className = '.highlight';
+            //get references to our attributes panel and file
+            var fileAttributes = document.getElementById('fileAttributes');
+            var file = this.file;
+
+            //create a file info
+            var fileInfo = 'File Info:<br>' + file.name + '<br>' + file.type + '<br>' + (file.size / 1024).toFixed(2) + 'KB<br>' + file.lastModifiedDate + '<br>';
+
+            //display the fileinfo
+            fileAttributes.innerHTML = fileInfo;
+        }
+        //reset rolling off the image
+        function cleanFile() {
+            //clear the file attributes panel
+            var fileAttributes = document.getElementById('fileAttributes');
+            fileAttributes.innerHTML = ' ';
+            //set highlight on the image back to normal
+            this.className = '.unhighlight';
+        }
+    </script>
+</head>
+<body>
+    <h1>Select the images to preview.</h1>
+            <section>
+                    <input type="file" id="input" multiple="multiple" onchange="handleFiles(this.files)" />
+            </section>
+            <section id="imgPanel"></section>
+            <section id="fileAttributes"></section>
+</body>
+</html>

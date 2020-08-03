@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>DEMO Form Elements</title>
+    <script type="text/javascript">
+        function init() {
+//The Array
+            var productArray = [
+                { pname: "Crocin", price: 1200 },
+                { pname: "Anasin", price: 23200 },
+                { pname: "Calpol", price: 1300 },
+                { pname: "Arsenal-T", price: 3300 },
+                { pname: "B-Complex", price: 2200 },
+                { pname: "Bitorex", price: 4500 },
+                { pname: "D-Cold", price: 4400 },
+                { pname: "Dani-2", price: 2400 }
+            ];
+
+            //Read datalist and input from
+            var dataList = document.getElementById('productList');
+            var txt = document.getElementById('txrpd');
+
+            //Loop thriugh the array to add data in the datalist
+            for (var i = 0; i < productArray.length; i++) {
+                dataList.innerHTML += "<option value=" + productArray[i].pname + ">" + productArray[i].pname + "</option>";
+            }
+
+            txt.addEventListener('blur', function () {
+                alert("Alert " + this.value);
+            }, false);
+
+        }
+        window.onload = init;
+
+    </script>
+</head>
+<body>
+   <div>
+       List of states: <input type="text" list="statelist" />
+       <datalist id="statelist">
+           <option value="MS">Maharashtra</option>
+           <option value="AP">Andhra Pradesh</option>
+           <option value="GJ">Gujarat</option>
+           <option value="CH">Chattisgad</option>
+           <option value="MP">Madhya Pradesh</option>
+           <option value="KR">Karnataka</option>
+           <option value="TN">Tamilnadu</option>
+           <option value="KL">Kerla</option>
+           <option value="OR">Orissa</option>
+           <option value="BH">Bihar</option>
+           <option value="UP">UttarPradesh</option>
+           <option value="UK">Uttarakhanda</option>
+           <option value="MZ">Mizoram</option>
+           <option value="TP">Tripura</option>
+           <option value="MN">Manipur</option>
+           <option value="AR">Aruchanal Pradesh</option>
+           <option value="NG">Nagaland</option>
+       </datalist>
+   </div>
+
+
+    <div>
+        Dynamically Populated DataList
+        <input type="text" list="productList" id="txrpd"/>
+        <datalist id="productList"></datalist> 
+    </div>
+</body>
+</html>

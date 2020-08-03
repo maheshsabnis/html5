@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>DEMO Drag and Drop Basics</title>
+   <style type="text/css">
+       img {
+         height:100px;
+         width:100px;
+       }
+       .c1 {
+         border:double;
+         width:100px;
+         height:100px;
+         display:table-cell;
+       }
+       article {
+        width:100%;
+            width:400px;
+            display:table;
+       }
+       div {
+           border:double;
+           width:500px;
+           height:100px;
+       }
+   </style>
+    <script type="text/javascript">
+        function init() {
+            //S1: Read all Images
+            var images = document.getElementsByTagName("img");
+            //S2: Iterate through all Images and subscribe to all dragstart event
+            for (var i = 0; i < images.length; i++) {
+                images[i].addEventListener('dragstart', function (evt) {
+                    evt.dataTransfer.setData("Text", evt.target.id);
+                }, false);
+            }
+ 
+            //S3: Read the <div> for dropping
+            var dvdroppable = document.getElementById('dvdroppable');
+            
+            //S4: Subscribe to the drop event  
+            dvdroppable.addEventListener('drop', function (evt) {
+                evt.preventDefault();
+                var data = evt.dataTransfer.getData("Text");
+                evt.target.appendChild(document.getElementById(data));
+            }, false);
+            
+            //S5: Subscribe to the dragover event
+            dvdroppable.addEventListener('dragover', function (evt) {
+                evt.preventDefault();
+            }, false);
+
+        }
+        window.onload= init;
+    </script>
+</head>
+
+<body>
+    <article>
+        <div class="c1">
+             <img src="../images/I1.png" draggable="true" class="i1" id="img1"/>
+             <img src="../images/I2.png" draggable="true" class="i1" id="img2"/>
+             <img src="../images/I3.png" draggable="true" class="i1" id="img3"/>
+             <img src="../images/I4.png" draggable="true" class="i1" id="img4"/>
+            </div>
+   </article>
+<br />
+    <div id="dvdroppable">
+
+    </div>
+</body>
+</html>

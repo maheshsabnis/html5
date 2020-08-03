@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>DEMO Drag-DROP the List Data</title>
+    <style type="text/css">
+        #dvcontainer {
+           display:table;
+           border:double;
+           width:1000px;
+           height:500px;
+        }
+        #dvsrc, #dvtgt {
+          display:table-cell;
+          border:double;
+          width:500px;
+          height:400px;
+        }
+    </style>
+    <script type="text/javascript">
+        function Initialize() {
+            var lstItems = document.getElementsByTagName('li');
+            for (var i = 0; i < lstItems.length; i++) {
+                lstItems[i].addEventListener('dragstart', function (evt) {
+                    evt.dataTransfer.setData("Text", evt.target.textContent);
+                    evt.target.draggable = false;
+                }, false);
+            }
+            
+            var dvtgt = document.getElementById('dvtgt');
+
+
+            dvtgt.addEventListener('drop', function (evt) {
+                evt.preventDefault();
+                var data = evt.dataTransfer.getData("Text");
+                var lst = document.getElementById('lsttgt');
+                var li = document.createElement('li');
+                li.textContent = data;
+                lst.appendChild(li);
+                evt.target.appendChild(lst);
+            }, false);
+
+            dvtgt.addEventListener('dragover', function (evt) {
+                evt.preventDefault();
+            }, false);
+        }
+        window.onload = Initialize;
+    </script>
+</head>
+<body>
+    <div id="dvcontainer">
+        <div id="dvsrc" style="background-color:yellow">
+            <h1 style="background-color:red">The Source List</h1>
+            <ul id="lstsrc">
+                <li draggable="true">Laptop</li>
+                <li draggable="true">Desktop</li>
+                <li draggable="true">Router</li>
+                <li draggable="true">DVD</li>
+                <li draggable="true">DVD-RW</li>
+            </ul>
+        </div>
+        <div id="dvtgt" style="background-color:red">
+             <h1 style="background-color:yellow">The Target List</h1>
+            <ul id="lsttgt">
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

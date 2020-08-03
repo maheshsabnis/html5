@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml-z">
+<head>
+    <title>DEMO New Input Types</title>
+    <style type="text/css">
+        table{
+          border:double;
+        }
+        td{
+          border:dotted;
+        }
+        div {
+           border:double;
+           overflow:scroll;
+        }
+    </style>
+    <script type="text/javascript">
+        function Init() {
+            //var range = document.getElementById('rng');
+            //range.addEventListener('change', function () {
+            //    alert(this.value);
+            //}, false);
+
+            var btnsubmit = document.getElementById('btnsubmit');
+            btnsubmit.addEventListener('click',displayValues,false);
+        }
+
+        function displayValues() {
+            var elements = document.getElementsByClassName('c1');
+            var dv = document.getElementById('dvdata');
+            for (var i = 0; i < elements.length; i++) {
+                dv.innerText += "value " + elements[i].value;
+            }
+        }
+
+        window.onload = Init;
+    </script>
+</head>
+<body>
+    <form>
+    <table style="border:double;width:100%">
+        <tr>
+             <td>Date</td>
+            <td>
+                <input type="date" class="c1" />
+            </td>
+        </tr>
+        <tr>
+            <td>DateTime Local</td>
+            <td>
+                <input type="datetime-local" class="c1" />
+            </td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>
+                <input type="email" class="c1"
+                       pattern="[^@]+@[^@]+\.[a-zA-Z]{2,6}" />
+            </td>
+        </tr>
+        <tr>
+            <td>Month</td>
+            <td>
+                <input type="month" class="c1" />
+            </td>
+        </tr>
+        <tr>
+            <td>Number</td>
+            <td>
+                <input type="number"  min="1" max="999" step="10" class="c1" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Range</td>
+            <td>
+                <input type="range"  min="1" max="100" id="rng" class="c1"/>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Search</td>
+            <td>
+                <input type="search" autocomplete="on" list="lstname" class="c1"
+                        />
+                <datalist id="lstname">
+                    <option value="0">Mahesh</option>
+                    <option value="1">Akash</option>
+                    <option value="2">Amit</option>
+                    <option value="3">Mohan</option>
+                    <option value="4">Manish</option>
+                    <option value="5">Abhijit</option>
+                    <option value="6">Baban</option>
+                    <option value="7">Balu</option>
+                    <option value="8">Ramesh</option>
+                    <option value="9">Raghav</option>
+                </datalist>
+            </td>
+        </tr>
+        <tr>
+             <td>Time</td>
+            <td>
+                <input type="time" class="c1" /> 
+            </td>
+        </tr>
+        <tr>
+             <td>URL</td>
+            <td>
+                <input type="url" class="c1" /> 
+            </td>
+        </tr>
+
+        <tr>
+             <td>WEEK</td>
+            <td>
+                <input type="week" class="c1" /> 
+            </td>
+        </tr>
+    </table>
+    <input type="submit" id="btnsubmit" value="Submit"/>
+
+        <div id="dvdata"></div>
+
+        </form>
+</body>
+</html>

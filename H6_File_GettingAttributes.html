@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Beginner Getting File Attributes</title>
+    <script>
+        //handle the file selected
+        function handlefile(fileinput) {
+            debugger;
+            //Get the section where the file attributes are
+            //supposed to be displayed
+            var fileAttributes = document.getElementById('fileAttributes');
+            //varify the browser supports file interface
+            if (fileinput.files) {
+                //reference the file using the file interface
+                var file = fileinput.files[0];
+                //create the output
+                var output = 'File attributes:<br>';
+                output += 'name:      ' + file.name + '<br>';
+                output += 'type:        ' + file.type + '<br>';
+                output += 'size:         ' + (file.size / 1024).toFixed(2) + 'KB<br>';
+                output += 'last modified date: ' + file.lastModifiedDate;
+
+                //Set the output to the section
+                fileAttributes.innerHTML = output;
+            }
+            else {
+                // files interface not supported by browser
+                fileAttributes.innerHTML = 'files interface not supported';
+            }
+        }
+    </script>
+
+</head>
+<body>
+    <h1>Select File Below:</h1>
+<section>
+<input type="file" id="input" onchange="handlefile(this)" />
+</section>
+<br/>
+<section id="fileAttributes"></section>
+   
+</body>
+</html>
