@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>DEMO using Indexed DB</title>
+    <style type="text/css">
+        table,td,th {
+          border:double;
+        }
+    </style>
+    <script type="text/javascript">
+        var transaction;
+        var tbl;
+        var productdb;
+        var isDbCreated;
+
+        //The method to create database and table(ObjectStore)
+        function createdatabase() {
+
+            var btndeletedatabase = document.getElementById('deletedatabase');
+            btndeletedatabase.addEventListener('click', deletedatabase, false);
+
+            var btnsaverecord = document.getElementById('save');
+            btnsaverecord.addEventListener('click', saverecord, false);
+
+            var btnclearinputs = document.getElementById('clearinputs');
+            btnclearinputs.addEventListener('click',clearinputs,false);
+
+            //The name of the database
+            productdb = window.indexedDB.open("ProductDB", 1);
+
+            //Create an object store
+            productdb.onupgradeneeded = function (e) {
+                var prdDb = e.target.result; // return the IndexedDB object
+
+                transaction = e.target.result
+
+                //Create Table. Here the Name of the Table is 'ProductStore' and the key is set to name as 'id'
+                tbl = prdDb.createObjectStore("ProductStore", { keyPath: "id" });
+
+                //The column metadata 
+               // var columnOptions = { unique: false, multientry: false };
+                // JSON object for Setting Columns Constraints
+                var columnOptions = { unique: false };
+
+                //Define the Columns
+                tbl.createIndex("ProductName1", "ProductName", columnOptions);
+                tbl.createIndex("Category1", "Category", columnOptions);
+
+
+                alert("Product Database Created");
+            };
+
+            //If the DB creation is successful
+            productdb.onsuccess = function (e) {
+                if (isDbCreated) {
+                    alert("Db is Available");
+                    var dd = e.target.result;
+                    transaction = e.target.result;
+                    var dbName = transaction.name;
+                }
+            };
+            isDbCreated = true;
+            loadrecords();//Load all Orders
+        }
+
+        //The Method to delete Database
+        function deletedatabase() {
+            var dbdeleteRequest = window.indexedDB.deleteDatabase("ProductDB");
+            dbdeleteRequest.onsuccess = function () {
+                alert("Product Database Deleted");
+            };
+        }
+
+        //Method to save record
+        function saverecord() {
+            var db = window.indexedDB.open("ProductDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //Get the Transaction for the ObjectStore, here in this case it is for readwrite 
+                    var orderStore = e.target.result.transaction("ProductStore", "readwrite");
+                    //Get the object store object
+                    //For performing Read/Write operations
+                    var tbl = orderStore.objectStore("ProductStore");
+
+                    //Read values entered in each textbox and also the selected date 
+                    var productid = document.getElementById('productid').value;
+                    var productname = document.getElementById('productname').value;
+                    var category = document.getElementById('category').value;
+
+                    //S4: Add the values against each keypath on object store
+                    //The Async Method
+                    var saveOperation = tbl.add({
+                        "id": productid,
+                        "ProductName": productname,
+                        "Category": category
+                    });
+
+
+                    saveOperation.onsuccess = function (e) {
+                        alert("Record Stored");
+                    };
+
+                    saveOperation.onerror = function (e) {
+                        alert("Error Occured" + JSON.stringify(e));
+                    };
+                };
+
+
+                loadrecords(); //Load Orders if Table is already Available
+            }
+
+
+        }
+        //Method to creae inputs
+        function clearinputs(){
+            var inputs = document.getElementsByClassName('c1');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].value = "";
+            }
+        }
+
+        //Method to Load all records
+        function loadrecords() {
+            //   debugger;
+            var products = [];
+            var tablehtml = "";
+            //open the database
+            var db = window.indexedDB.open("ProductDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //Get transaction object for the Object Store for performing operation 
+                    var transaction = e.target.result.transaction("ProductStore", "readonly");
+                    //Begin the transaction on the object store
+                    var objectStore = transaction.objectStore("ProductStore");
+
+                    //On the completion of the transaction generate HTML table dynamically
+                    transaction.oncomplete = function () {
+                        tablehtml = "<table><tr><th>ProductId</th><th>ProductName</th><th>Category</th></tr>";
+                        for (var i = 0; i < products.length; i++) {
+                            tablehtml += "<tr><td class='cid'>" + products[i].id + "</td><td>" + products[i].ProductName + "</td><td>" +
+                                products[i].Category + "</td></tr>";
+                        }
+                        tablehtml += "</table>"
+
+                        var resDiv = document.getElementById('dvtable');
+                        resDiv.innerHTML = tablehtml;
+                    };
+
+
+                    //Set the Cursor for Reading Orders from object store. This points to the first record in the source
+                    var orderCursor = objectStore.openCursor();
+                    //Add each record in the Array of name 'Products'
+                    orderCursor.onsuccess = function (e) {
+                        var reader = e.target.result;
+                        if (reader) {
+                            products.push(reader.value);
+                            reader.continue();
+                        }
+                    };
+                };
+            }
+        }
+
+        window.onload = createdatabase;
+
+    </script>
+</head>
+<body>
+    <table>
+        <tr>
+             <td>
+                 Product Id
+             </td>
+            <td>
+                <input type="text" id="productid" class="c1"/>
+            </td>
+        </tr>
+        <tr>
+             <td>
+                 Product Name
+             </td>
+            <td>
+                <input type="text" id="productname" class="c1"/>
+            </td>
+        </tr>
+        <tr>
+             <td>
+                Category
+             </td>
+            <td>
+                <input type="text" id="category" class="c1"/>
+            </td>
+        </tr>
+    <tr>
+        <td>
+            <input type="button" value="Save" id="save" />
+        </td>
+         <td>
+            <input type="button" value="Delete Database" id="deletedatabase" />
+        </td>
+         <td>
+            <input type="button" value="Clear All" id="clearinputs" />
+        </td>
+    </tr>
+    </table>
+    
+    
+    <div id="dvtable"></div>
+</body>
+</html>

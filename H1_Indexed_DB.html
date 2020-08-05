@@ -1,0 +1,481 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>DEMO Indexed DB</title>
+
+    <script src="../Scripts/jquery-2.1.0.min.js"></script>
+    <script type="text/javascript">
+        //Locl variables for various purposes
+        var selectedDate = "";
+        var orderDB;
+        var dbCreated = false;
+        var orderToEdit = {};
+        var transaction;
+        var tbl;
+
+
+        //Method to Create Database and Table
+        function createdatabase() {
+            // debugger;
+            orderDB = window.indexedDB.open("OrdersDB", 1); //Name of the database
+            //Create Object Store
+            orderDB.onupgradeneeded = function (e) {
+
+                var ordDb = e.target.result;
+
+                transaction = e.target.result
+
+                //Create Table. Here the Name of the Table is 'NewOrderStore' and the key is set to name as 'id'
+                tbl = ordDb.createObjectStore("NewOrderStore", { keyPath: "id" });
+
+                //The column metadata 
+                var columnOptions = { unique: false, multientry: false };
+
+                //Define the Columns
+                tbl.createIndex("StockiestName1", "StockiestName", columnOptions);
+                tbl.createIndex("OrderDate1", "OrderDate", columnOptions);
+                tbl.createIndex("OrderMedicine1", "OrderMedicine", columnOptions);
+                tbl.createIndex("Quantity1", "Quantity", columnOptions);
+                tbl.createIndex("UnitPrice1", "UnitPrice", columnOptions);
+                tbl.createIndex("TotalPrice1", "TotalPrice", columnOptions);
+
+
+                alert("DB Created");
+            };
+            //If the DB creation is successful
+            orderDB.onsuccess = function (e) {
+                if (dbCreated) {
+                    alert("Db is Available");
+                    var dd = e.target.result;
+
+                    transaction = e.target.result;
+
+                    var dbName = transaction.name;
+
+                    loadOrder(); //Load Orders if Table is already Available
+
+                }
+            };
+            dbCreated = true;
+        }
+        //Ends Here
+        //The Method to delete Database
+        function deletedatabase() {
+            var dbRequest = window.indexedDB.deleteDatabase("OrdersDB");
+            dbRequest.onsuccess = function () {
+                alert("DB Deleted");
+            };
+        }
+        //Ends Here
+        //The Method to Read all Records 
+        function loadOrder() {
+            //   debugger;
+            var orders = [];
+            var resHTML = "";
+            //S1: open the database
+            var db = window.indexedDB.open("OrdersDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //S2: Get transaction object for the Object Store for performing operation 
+                    var transaction = e.target.result.transaction("NewOrderStore", "readonly");
+                    //S3: Begin the transaction on the object store
+                    var objectStore = transaction.objectStore("NewOrderStore");
+
+                    //S4: On the completion of the transaction generate HTML table dynamically
+                    transaction.oncomplete = function () {
+                        $("lblrowcount").html("No. of Orders " + orders.length);
+                        resHTML = "<table id='tblorders' border='1'><tr><th>OrderId</th><th>StockitestName</th><th>OrderDate</th><th>OrderMedicine</th><th>OrderQuantity</th><th>UnitPrice</th><th>TotalPrice</th></tr>";
+                        for (var i = 0; i < orders.length; i++) {
+                            resHTML += "<tr><td class='cid'>" + orders[i].id + "</td><td>" + orders[i].StockiestName + "</td><td>" +
+                                orders[i].OrderDate + "</td><td>" + orders[i].OrderMedicine + "</td><td>" + orders[i].Quantity +
+                                "</td><td>" + orders[i].UnitPrice + "</td><td>" + orders[i].TotalPrice + "</td></tr>";
+                        }
+                        resHTML += "</table>"
+
+                        var resDiv = $("#dvData");
+                        resDiv.html(resHTML);
+                    };
+
+
+                    //S5: Set the Cursor for Reading Orders from object store. This points to the first record in the source
+                    var orderCursor = objectStore.openCursor();
+                    //S6: Add each record in the Array of name 'orders'
+                    orderCursor.onsuccess = function (e) {
+                        var reader = e.target.result;
+                        if (reader) {
+                            orders.push(reader.value);
+                            reader.continue();
+                        }
+                    };
+                };
+            }
+        }
+        //Ends Here
+        //The method to Save Record
+        function saveOrder() {
+            var db = window.indexedDB.open("OrdersDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //S1: Get the Transaction for the ObjectStore, here in this case it is for readwrite 
+                    var orderStore = e.target.result.transaction("NewOrderStore", "readwrite");
+                    //S2: Get the object store object
+                    var tbl = orderStore.objectStore("NewOrderStore");
+
+                    //S3: Read values entered in each textbox and also the selected date 
+                    var id = $("#txtordno").val();
+                    var sockiestName = $("#txtstockiest").val();
+                    var orderDate = selectedDate;
+                    var orderMedicine = $("#txtordermedicine").val();
+                    var quantity = $("#txtqty").val();
+                    var unitPrice = $("#txtunitprice").val();
+                    var totalPrice = parseInt($("#txtunitprice").val()) * parseInt($("#txtqty").val());
+
+
+                    //S4: Add the values against each keypath on object store
+                    var saveOperation = tbl.add({
+                        "id": id,
+                        "StockiestName": sockiestName,
+                        "OrderDate": orderDate,
+                        "OrderMedicine": orderMedicine,
+                        "Quantity": quantity,
+                        "UnitPrice": unitPrice,
+                        "TotalPrice": totalPrice
+                    });
+
+
+                    saveOperation.onsuccess = function (e) {
+                        var res = $("#txtres");
+                        res.val("Saved" + e.target.result);
+                    };
+
+                    saveOperation.onerror = function (e) {
+                        var res = $("#txtres");
+                        res.val("Error Occured" + e.value);
+                    };
+
+                    $("#txtprice").val(totalPrice);
+                };
+
+
+                loadOrder(); //Load Orders if Table is already Available
+            }
+
+
+        }
+        //Ends Here
+        //The Method to Create New Order
+        function neworder() {
+            $("#txtordno").val("");
+            $("#txtstockiest").val("");
+            $("#datepicker").val("");
+            $("#txtordermedicine").val("");
+            $("#txtqty").val("");
+            $("#txtunitprice").val("");
+            $("#txtprice").val("");
+        }
+        //Ends Here
+        //Method to get the current date
+        function getTodaysDate() {
+            var curdate = new Date();
+
+            var curMonth = curdate.getMonth() + 1;
+            var curday = curdate.getDate();
+
+
+            selectedDate = (('' + curday).length < 2 ? '0' : '') + curday + '/' + (('' + curMonth).length < 2 ? '0' : '') + curMonth + '/' + curdate.getFullYear();
+            return selectedDate;
+        }
+        //Ends Here
+
+        //The method to Get the Selected Date from the Date Picker
+        $("#datepicker").datepicker({
+            weekStart: 1,
+            dateFormat: 'dd/mm/yy',
+            onSelect: function (date, i) {
+
+                selectedDate = getTodaysDate();
+                alert("Date " + selectedDate)
+
+                if (date < selectedDate || date > selectedDate) {
+                    alert("Ordered Date Should Current Date only");
+                    return;
+                }
+                else {
+                    selectedDate = date;
+                }
+            }
+        });
+        //Ends Here
+        //The event is defined on the table
+        //This is iterate thoruh the dynamic table and
+        //Get the Otrder Id
+        $("#dvData").on('click', $("#tblorders"), function () {
+            var id = 0;
+            $("#tblorders tr").filter(":not(:has(table,th))").each(function () {
+                $(this).on('click', function () {
+                    id = $(this).closest('tr').children('td.cid').text();
+                    if (id > 0) {
+                        loadOrderById(id);
+                        $.mobile.changePage("#secondPage");
+                        return false;
+                    }
+                });
+            });
+        });
+
+        //Ends Here
+        //The method to Load the Record by Id
+        function loadOrderById(id) {
+            //var ordno = document.getElementById('txtordno');
+            // alert("In Method id " + id);
+            $("#txtordno").val(id);
+            //id = ordno.value;
+            //S1: Open the database
+            var db = window.indexedDB.open("OrdersDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //S2: Begin the transaction on the object store
+                    var transaction = e.target.result.transaction("NewOrderStore", "readonly");
+
+                    var objectStore = transaction.objectStore("NewOrderStore");
+                    //S3: Set the cursor based upon the id (key) of the record 
+                    var orderCursor = objectStore.openCursor(id);
+                    //S4: Show the record in the textboxes and datepicker control 
+                    orderCursor.onsuccess = function (e) {
+                        var reader = e.target.result;
+                        if (reader) {
+                            $("#txtstockiest").val(reader.value.StockiestName);
+                            $("#datepicker").val(reader.value.OrderDate);
+                            $("#txtordermedicine").val(reader.value.OrderMedicine);
+                            $("#txtqty").val(reader.value.Quantity);
+                            $("#txtunitprice").val(reader.value.UnitPrice);
+                            $("#txtprice").val(reader.value.TotalPrice);
+                        }
+                    };
+                };
+            }
+        }
+        //Ends Here
+        //The method to Edit Record
+        function editOrder() {
+            var ordno = $("#txtordno");
+            var id = ordno.val();
+            //S1: Open Database
+            var db = window.indexedDB.open("OrdersDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //S2: Set the transaction on the ObjectStore for read-write operation
+                    var transaction = e.target.result.transaction("NewOrderStore", "readwrite");
+                    var tbl = transaction.objectStore("NewOrderStore");
+                    //S3: Use 'get' method to get the record details 
+                    var requestToUpdate = tbl.get(id).onsuccess = function (e) {
+                        //S4: Assign the record to the 'Order object' of name 'orderToEdit'
+                        orderToEdit = e.target.result;
+
+                        //S5: Assign the New values
+                        orderToEdit.StockiestName = $("#txtstockiest").val();
+                        orderToEdit.OrderDate = selectedDate;
+                        orderToEdit.OrderMedicine = $("#txtordermedicine").val();
+                        orderToEdit.Quantity = $("#txtqty").val();
+                        orderToEdit.UnitPrice = $("#txtunitprice").val();
+                        orderToEdit.TotalPrice = parseInt($("#txtunitprice").val()) * parseInt($("#txtqty").val());
+
+                        //S6: Update the Record using Put method
+
+                        var req = tbl.put(orderToEdit);
+                        req.onsuccess = function (e) {
+                            var res = $("#txtres");
+                            res.val("Update Completed Successfully" + e.target.result);
+                            $("#txtprice").val(orderToEdit.TotalPrice);
+                        };
+                        req.onerror = function (e) {
+                            var res = $("#txtres");
+                            res.val("Error Occured" + e.target.result);
+                        };
+                    };
+                };
+                loadOrder();
+            }
+        }
+        //Ends Here
+        //The Method to Delete Record
+        function deleteOrder() {
+            var ordno = $("#txtordno").val();
+            id = ordno;
+            //S1: Open the database
+            var db = window.indexedDB.open("OrdersDB");
+            if (db) {
+                db.onsuccess = function (e) {
+                    //S2: Set the transaction to perform 'readwrite' operation
+                    var transaction = e.target.result.transaction("NewOrderStore", "readwrite");
+
+                    var objectStore = transaction.objectStore("NewOrderStore");
+                    //S3: Delete the record using 'delete' method. 
+                    var delRequest = objectStore.delete(id);
+                };
+            }
+            loadOrder();
+            neworder();
+        }
+        //Ends Here
+
+        function checkInputs() {
+            var isValidate = false;
+            var id = $("#txtordno").val();
+            var sockiestName = $("#txtstockiest").val();
+            var orderMedicine = $("#txtordermedicine").val();
+            var quantity = $("#txtqty").val();
+            var unitPrice = $("#txtunitprice").val();
+            if (parseInt(id) <= 0 || sockiestName.length === 0 || orderMedicine.length === 0 || parseInt(quantity) <= 0 || parseInt(unitPrice) <= 0) {
+
+                isValidate = false;
+            }
+            else {
+                isValidate = true;
+            }
+            return isValidate;
+        }
+        $("#btnnew").on('click', function () {
+            neworder();
+        });
+        $("#btngotoedit").on('click', function () {
+            $.mobile.changePage($("#secondPage"));
+        });
+
+        $("#btnsave").on('click', function () {
+            if (!checkInputs()) {
+                alert("please check inputs");
+            }
+            else {
+                saveOrder();
+                $.mobile.changePage($("#firstPage"));
+            }
+        });
+
+        $("#btnedit").on('click', function () {
+            editOrder();
+            $.mobile.changePage($("#firstPage"));
+        });
+
+        $("#btndelete").on('click', function () {
+            deleteOrder();
+            $.mobile.changePage($("#firstPage"));
+        });
+
+        $("#btnloadrecord").on('click', function () {
+            alert("In Load");
+            loadOrderById();
+        });
+
+    </script>
+</head>
+<body>
+    <div id="firstPage"  data-role="page">
+    <!--To display Table Dynamically-->
+    <div data-role="header">
+        <h1>Order Placed</h1>
+    </div>
+    <div data-role="content">
+        <div id="dvData"></div>
+          <div id="lblrowcount"></div>
+        <div>
+            <span>
+                Please double click on the Order id to be edited.
+            </span>
+        </div>
+        <input type="button" id="btngotoedit" value="Click for Orders Management" />
+    </div>
+</div>
+    <div  id="secondPage" data-role="page" data-add-back-btn="true">
+    <div data-role="header">
+        <h1>Place Order</h1>
+    </div>
+    <div data-role="content">
+        <table>
+        <thead>
+            <tr>
+                <td style="font-size:xx-large">Manage Medicine Orders</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>Order Id</td>
+            <td>
+                <input type="text" id="txtordno" required="required" name="txtordno" />
+            </td>
+             <td><span class="mandatory">*</span></td>
+        </tr>
+        <tr>
+            <td>Stockiest Name</td>
+            <td>
+                <input type="text" autocomplete="on" id="txtstockiest"  required="required" name="txtstockiest"/>
+            </td>
+            <td><span class="mandatory">*</span></td>
+        </tr>
+        <tr>
+            <td>Order Date
+            </td>
+            <td>
+                <input type="text" id="datepicker" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Medicine  Ordered
+            </td>
+            <td>
+                <input type="text" id="txtordermedicine"  required="required" name="txtordermedicine"/>
+            </td>
+            <td><span class="mandatory">*</span></td>
+        </tr>
+
+        <tr>
+            <td>Medicine  Quantity
+            </td>
+            <td>
+                <input type="text" id="txtqty" required="required"  name="txtqty"/>
+            </td>
+            <td><span class="mandatory">*</span></td>
+        </tr>
+        <tr>
+            <td>Unit Price
+            </td>
+            <td>
+                <input type="text" id="txtunitprice"  required="required" name="txtunitprice"/>
+            </td>
+            <td><span class="mandatory">*</span></td>
+        </tr>
+        <tr>
+            <td>Total Price
+            </td>
+            <td>
+                <input type="text" id="txtprice"  readonly="true"/>
+            </td>
+        </tr>
+        <tfoot>
+            <tr>
+                <td>
+                    <input type="button" id="btnnew" value="New"  data-icon="refresh" class="btnclass"/>
+                </td>
+                <td> 
+                    <input type="button" id="btnsave" value="Save" data-icon="plus" class="btnclass"/>
+                </td>
+                <td>
+                    <input type="button" id="btnedit" value="Edit" data-icon="edit" class="btnclass"/>
+                </td>
+                <td>
+                    <input type="button" id="btndelete" value="Delete"  data-icon="delete" class="btnclass" />
+                </td>
+                <td>
+                    <input type="button" id="btnloadrecord" value="Load Record"  data-icon="search" class="btnclass"/>
+                </td>
+                <td>
+                    <input type="text" id="txtres" value=""  readonly="true" style="visibility:hidden"/>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+</div>
+</body>
+
+</html>
