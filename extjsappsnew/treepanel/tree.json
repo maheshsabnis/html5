@@ -1,0 +1,25 @@
+{
+    "children": [{
+            "text": "detention",
+            "leaf": true
+        },
+        {
+            "text": "homework",
+            "children": [{
+                    "text": "book report",
+                    "leaf": true
+                },
+                {
+                    "text": "algebra",
+                    "leaf": true
+                }
+            ]
+        },
+        {
+            "text": "buy lottery tickets",
+            "leaf": true
+        }
+    ],
+    "total": 5,
+    "success": "success"
+}

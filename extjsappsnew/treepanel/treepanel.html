@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/classic/theme-classic/resources/theme-classic-all.css" rel="stylesheet" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script>
+    <title>Document</title>
+    <script>
+        Ext.override(Ext.data.TreeStore, {
+            load: function(options) {
+                var node = options && options.node;
+                // If there is not a node it means the user hasn't defined a root node yet. In this case let's just
+                // create one for them. The expanded: true will cause a load operation, so return.
+                if (!node && !(node = this.getRoot())) {
+                    node = this.setRoot({
+                        expanded: true,
+                        autoRoot: true
+                    });
+                    return;
+                }
+                // If the node kicked off its own load, then don't schedule another load.
+                if (node.isLoading()) {
+                    return;
+                }
+                node.removeAll();
+                return this.callParent([
+                    options
+                ]);
+            }
+        });
+
+        Ext.application({
+            name: 'Fiddle',
+
+            launch: function() {
+                var store = Ext.create('Ext.data.TreeStore', {
+                    /*root: {
+                        expanded: false
+                    },*/
+                    rootVisible: true,
+                    autoLoad: true,
+                    proxy: {
+                        type: 'ajax',
+                        url: './tree.json',
+                        reader: {
+                            type: 'json',
+                            rootProperty: 'children',
+                            successProperty: 'success',
+                            totalProperty: 'total'
+                        }
+                    }
+                });
+
+                Ext.create('Ext.panel.Panel', {
+                    title: 'Tree List Reload Example',
+                    id: 'panel',
+                    width: 700,
+                    height: 700,
+                    renderTo: Ext.getBody(),
+                    dockedItems: [{
+                        xtype: 'toolbar',
+                        items: [{
+                            xtype: 'button',
+                            text: 'Change Data',
+                            handler: function(btn) {
+                                var p = btn.up('panel');
+                                var tl = p.queryById('treeListId');
+                                tl.getStore().data.items[0].appendChild({
+                                    'text': 'Test'
+                                });
+                            }
+                        }, {
+                            xtype: 'button',
+                            text: 'Reload',
+                            handler: function(btn) {
+                                var p = btn.up('panel');
+                                var tl = p.queryById('treeListId');
+                                tl.getStore().reload();
+                            }
+                        }]
+                    }],
+                    items: [{
+                        xtype: 'treelist',
+                        id: 'treeListId',
+                        store: store
+                    }]
+                })
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
